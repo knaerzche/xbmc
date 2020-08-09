@@ -131,7 +131,7 @@ protected:
 
 private:
   static bool SupportsFormat(drmModePlanePtr plane, uint32_t format);
-  drmModePlanePtr FindPlane(drmModePlaneResPtr resources, int crtc_index, int type);
+  drmModePlanePtr FindPlane(drmModePlaneResPtr resources, int crtc_index, int type, bool allow_cursor_plane);
 
   bool GetResources();
   bool FindConnector();

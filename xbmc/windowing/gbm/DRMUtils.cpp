@@ -389,7 +389,8 @@ bool CDRMUtils::SupportsFormat(drmModePlanePtr plane, uint32_t format)
   return false;
 }
 
-drmModePlanePtr CDRMUtils::FindPlane(drmModePlaneResPtr resources, int crtc_index, int type)
+drmModePlanePtr CDRMUtils::FindPlane(drmModePlaneResPtr resources, int crtc_index, int type,
+                                     bool allow_cursor_plane = false)
 {
   for (uint32_t i = 0; i < resources->count_planes; i++)
   {
@@ -403,7 +404,8 @@ drmModePlanePtr CDRMUtils::FindPlane(drmModePlaneResPtr resources, int crtc_inde
       {
         drmModePropertyPtr p = drmModeGetProperty(m_fd, props->props[j]);
 
-        if ((strcmp(p->name, "type") == 0) && (props->prop_values[j] != DRM_PLANE_TYPE_CURSOR))
+        if ((strcmp(p->name, "type") == 0) && ((props->prop_values[j] != DRM_PLANE_TYPE_CURSOR) ||
+                                               (props->prop_values[j] == DRM_PLANE_TYPE_CURSOR && allow_cursor_plane)))
         {
           switch (type)
           {
@@ -474,6 +476,10 @@ bool CDRMUtils::FindPlanes()
 
     m_video_plane->plane = FindPlane(plane_resources, i, KODI_VIDEO_PLANE);
     m_gui_plane->plane = FindPlane(plane_resources, i, KODI_GUI_PLANE);
+
+    /* Fallback to DRM_PLANE_TYPE_CURSOR for KODI_GUI_PLANE if no other was found */
+    if (m_gui_plane->plane == nullptr)
+      m_gui_plane->plane = FindPlane(plane_resources, i, KODI_GUI_PLANE, true);
 
     if (m_video_plane->plane && m_gui_plane->plane)
     {
